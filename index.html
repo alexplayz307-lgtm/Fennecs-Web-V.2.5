@@ -1,0 +1,1326 @@
+cat > /tmp/build_site.py << 'PYEOF'
+html = r"""<!DOCTYPE html>
+<html lang="en" style="background:#0a0c10;">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Fennecs Dev Group</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth;background:#0a0c10}
+    body{background:#0a0c10;color:#d6dae6;font-family:'Syne',sans-serif;overflow-x:hidden;min-height:100vh;transition:background 0.3s,color 0.3s}
+    body.light{background:#f4f5f7;color:#1a1d24}
+    body.light::before{background-image:linear-gradient(rgba(30,35,48,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(30,35,48,0.06) 1px,transparent 1px)}
+    .cursor{width:12px;height:12px;border-radius:50%;background:#e8c84a;position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s;mix-blend-mode:difference}
+    .cursor-ring{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(232,200,74,.45);position:fixed;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .1s ease,top .1s ease,width .25s,height .25s}
+    #particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+    body::before{content:'';position:fixed;inset:0;background-color:#0a0c10;background-image:linear-gradient(rgba(232,200,74,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(232,200,74,.035) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:17px 48px;background:rgba(10,12,16,.93);backdrop-filter:blur(16px);border-bottom:1px solid #1e2330;transition:padding .3s}
+    nav.scrolled{padding:11px 48px}
+    body.light nav{background:rgba(244,245,247,.93);border-bottom-color:#d0d4de}
+    .nav-logo{font-family:'Space Mono',monospace;font-weight:700;font-size:.95rem;color:#e8c84a;letter-spacing:.08em;text-decoration:none}
+    .nav-links{display:flex;gap:22px;list-style:none;align-items:center;flex-wrap:wrap}
+    .nav-links a{color:#5a6070;text-decoration:none;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;transition:color .2s;position:relative;padding-bottom:3px}
+    .nav-links a::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:#e8c84a;transform:scaleX(0);transition:transform .25s}
+    .nav-links a:hover{color:#e8c84a}
+    .nav-links a:hover::after{transform:scaleX(1)}
+    .theme-btn{background:none;border:1px solid #1e2330;color:#5a6070;font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;padding:6px 12px;cursor:pointer;transition:all .2s}
+    .theme-btn:hover{color:#e8c84a;border-color:#e8c84a}
+    .back-top{position:fixed;bottom:88px;right:32px;z-index:200;width:40px;height:40px;background:#e8c84a;color:#0a0c10;border:none;font-family:'Space Mono',monospace;font-size:.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateY(12px)}
+    .back-top.show{opacity:1;pointer-events:all;transform:translateY(0)}
+    .back-top:hover{background:#d4b43a}
+    .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 32px 80px;overflow:hidden}
+    .hero-orb{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(232,200,74,.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:orbPulse 4s ease-in-out infinite;pointer-events:none}
+    @keyframes orbPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.18);opacity:1}}
+    .hero-tag{font-family:'Space Mono',monospace;font-size:.72rem;color:#4ad4e8;letter-spacing:.3em;text-transform:uppercase;margin-bottom:22px;opacity:0;animation:fadeUp .7s .1s forwards}
+    .hero h1{font-size:clamp(3rem,8vw,7rem);font-weight:800;line-height:1;letter-spacing:-.02em;color:#f0f2f8;margin-bottom:6px;opacity:0;animation:fadeUp .7s .25s forwards}
+    body.light .hero h1{color:#1a1d24}
+    .hero h1 span{color:#e8c84a;display:block}
+    .typewriter{font-family:'Space Mono',monospace;font-size:.88rem;color:#e8c84a;margin:16px 0 10px;height:22px;opacity:0;animation:fadeUp .7s .45s forwards}
+    .tw-cursor{display:inline-block;width:2px;height:1em;background:#e8c84a;margin-left:3px;vertical-align:middle;animation:blink .85s step-end infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    .hero-sub{font-size:1rem;color:#5a6070;max-width:490px;line-height:1.75;margin:16px auto 36px;opacity:0;animation:fadeUp .7s .5s forwards}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .7s .62s forwards}
+    .scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);font-family:'Space Mono',monospace;font-size:.6rem;color:#5a6070;letter-spacing:.22em;text-transform:uppercase;opacity:0;animation:fadeUp .7s .9s forwards}
+    .scroll-hint::after{content:'';display:block;width:1px;height:36px;background:#5a6070;margin:9px auto 0;animation:scrollLine 1.5s 1s infinite}
+    @keyframes scrollLine{0%{opacity:0;transform:scaleY(0);transform-origin:top}50%{opacity:1;transform:scaleY(1);transform-origin:top}100%{opacity:0;transform:scaleY(1);transform-origin:bottom}}
+    .btn{display:inline-block;padding:12px 26px;font-family:'Space Mono',monospace;font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;border:1.5px solid transparent;transition:all .22s;cursor:pointer}
+    .btn-primary{background:#e8c84a;color:#0a0c10;border-color:#e8c84a}
+    .btn-primary:hover{background:transparent;color:#e8c84a}
+    .btn-secondary{background:transparent;color:#4ad4e8;border-color:#4ad4e8}
+    .btn-secondary:hover{background:#4ad4e8;color:#0a0c10}
+    .ticker-wrap{position:relative;z-index:2;overflow:hidden;background:#0d0f14;border-top:1px solid #1e2330;border-bottom:1px solid #1e2330;white-space:nowrap}
+    body.light .ticker-wrap{background:#e8eaf0;border-color:#d0d4de}
+    .ticker-track{display:inline-flex;animation:ticker 32s linear infinite}
+    .ticker-track:hover{animation-play-state:paused}
+    .ticker-item{display:inline-flex;align-items:center;gap:9px;padding:12px 36px;font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:#5a6070}
+    .ticker-item .dot{width:5px;height:5px;border-radius:50%;background:#e8c84a;flex-shrink:0}
+    .ticker-item.h1{color:#e8c84a}
+    .ticker-item.h2{color:#4ad4e8}
+    @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    .status-strip{position:relative;z-index:2;background:#0d0f14;border-bottom:1px solid #1e2330;padding:13px 48px;display:flex;align-items:center;gap:28px;overflow-x:auto}
+    body.light .status-strip{background:#e8eaf0;border-color:#d0d4de}
+    .status-strip-label{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:#5a6070;flex-shrink:0}
+    .status-items{display:flex;gap:18px;flex-shrink:0;flex-wrap:wrap}
+    .status-dot-item{display:flex;align-items:center;gap:7px;font-family:'Space Mono',monospace;font-size:.63rem;letter-spacing:.1em;color:#d6dae6}
+    body.light .status-dot-item{color:#3a3f52}
+    .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;animation:pulse-dot 2s ease-in-out infinite}
+    .sdot.green{background:#4ae87a;box-shadow:0 0 6px #4ae87a}
+    .sdot.yellow{background:#e8c84a;box-shadow:0 0 6px #e8c84a;animation-delay:.4s}
+    .sdot.blue{background:#4ad4e8;box-shadow:0 0 6px #4ad4e8;animation-delay:.8s}
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+    .stats-strip{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);background:#111418;border-top:1px solid #1e2330;border-bottom:1px solid #1e2330}
+    body.light .stats-strip{background:#ebedf2;border-color:#d0d4de}
+    .stat-item{padding:46px 30px;text-align:center;border-right:1px solid #1e2330;transition:background .2s;position:relative;overflow:hidden}
+    body.light .stat-item{border-right-color:#d0d4de}
+    .stat-item:last-child{border-right:none}
+    .stat-item:hover{background:#161a22}
+    body.light .stat-item:hover{background:#dfe2ea}
+    .stat-item::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#e8c84a,transparent);transform:scaleX(0);transition:transform .4s}
+    .stat-item:hover::after{transform:scaleX(1)}
+    .stat-num{font-family:'Space Mono',monospace;font-size:2.3rem;font-weight:700;color:#e8c84a;line-height:1;margin-bottom:7px}
+    .stat-label{font-size:.73rem;color:#5a6070;letter-spacing:.12em;text-transform:uppercase}
+    section{position:relative;z-index:1;padding:88px 48px;max-width:1100px;margin:0 auto}
+    .section-label{font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:#e8c84a;margin-bottom:12px}
+    .section-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:#f0f2f8;line-height:1.1;margin-bottom:16px}
+    body.light .section-title{color:#1a1d24}
+    .section-desc{color:#5a6070;font-size:.97rem;line-height:1.8;max-width:520px;margin-bottom:48px}
+    .grid-1px{gap:1px;border:1px solid #1e2330;background:#1e2330}
+    body.light .grid-1px{border-color:#d0d4de;background:#d0d4de}
+    .card-base{background:#111418;transition:background .22s;position:relative;overflow:hidden}
+    body.light .card-base{background:#f4f5f7}
+    .card-base:hover{background:#161a22}
+    body.light .card-base:hover{background:#e8eaf2}
+    .services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+    .service-card{padding:36px 28px}
+    .service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#e8c84a,#4ad4e8);transform:scaleX(0);transform-origin:left;transition:transform .38s}
+    .service-card:hover::before{transform:scaleX(1)}
+    .service-card-num{font-family:'Space Mono',monospace;font-size:.65rem;color:#e8c84a;letter-spacing:.2em;margin-bottom:14px}
+    .service-card h3{font-size:1.1rem;font-weight:700;color:#f0f2f8;margin-bottom:9px}
+    body.light .service-card h3{color:#1a1d24}
+    .service-card p{font-size:.86rem;color:#5a6070;line-height:1.72}
+    .service-tag{display:inline-block;margin-top:16px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:#4ad4e8;border:1px solid #4ad4e8;padding:3px 8px}
+    .divider{border:none;border-top:1px solid #1e2330;margin:0 48px;position:relative;z-index:1}
+    body.light .divider{border-color:#d0d4de}
+    .collabs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .collab-card{padding:36px 30px}
+    .collab-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#e8c84a;transform:scaleY(0);transition:transform .35s}
+    .collab-card:hover::after{transform:scaleY(1)}
+    .collab-status-tag{display:inline-block;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;padding:3px 9px;border:1px solid;margin-bottom:14px}
+    .cs-open{color:#4ae87a;border-color:#4ae87a}
+    .cs-interest{color:#4ad4e8;border-color:#4ad4e8}
+    .collab-card h3{font-size:1.1rem;font-weight:700;color:#f0f2f8;margin-bottom:8px}
+    body.light .collab-card h3{color:#1a1d24}
+    .collab-card p{font-size:.86rem;color:#5a6070;line-height:1.72}
+    .commission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .commission-card{padding:34px 28px}
+    .commission-card-num{font-family:'Space Mono',monospace;font-size:.65rem;color:#4ad4e8;letter-spacing:.2em;margin-bottom:13px}
+    .commission-card h3{font-size:1.1rem;font-weight:700;color:#f0f2f8;margin-bottom:3px}
+    body.light .commission-card h3{color:#1a1d24}
+    .commission-type{font-family:'Space Mono',monospace;font-size:.59rem;letter-spacing:.16em;text-transform:uppercase;color:#e8c84a;margin-bottom:12px}
+    .commission-card p{font-size:.86rem;color:#5a6070;line-height:1.75}
+    .commission-status{display:inline-block;margin-top:16px;font-family:'Space Mono',monospace;font-size:.59rem;letter-spacing:.15em;text-transform:uppercase;padding:3px 10px;border:1px solid}
+    .status-open{color:#4ad4e8;border-color:#4ad4e8}
+    .updatelog-list{border:1px solid #1e2330;overflow:hidden}
+    body.light .updatelog-list{border-color:#d0d4de}
+    .updatelog-entry{display:grid;grid-template-columns:150px 1fr;border-bottom:1px solid #1e2330;transition:background .2s}
+    body.light .updatelog-entry{border-bottom-color:#d0d4de}
+    .updatelog-entry:last-child{border-bottom:none}
+    .updatelog-entry:hover{background:#161a22}
+    body.light .updatelog-entry:hover{background:#e4e6ef}
+    .updatelog-left{padding:26px 22px;border-right:1px solid #1e2330;background:#0d0f14;display:flex;flex-direction:column;gap:7px}
+    body.light .updatelog-left{background:#e8eaf0;border-right-color:#d0d4de}
+    .updatelog-version{font-family:'Space Mono',monospace;font-size:.82rem;font-weight:700;color:#e8c84a}
+    .updatelog-date{font-family:'Space Mono',monospace;font-size:.58rem;color:#5a6070;letter-spacing:.1em}
+    .updatelog-tag{display:inline-block;font-family:'Space Mono',monospace;font-size:.53rem;letter-spacing:.15em;text-transform:uppercase;padding:2px 7px;border:1px solid;width:fit-content;margin-top:2px}
+    .utag-major{color:#4ae87a;border-color:#4ae87a}
+    .utag-minor{color:#4ad4e8;border-color:#4ad4e8}
+    .updatelog-right{padding:26px 28px}
+    .updatelog-title{font-size:.98rem;font-weight:700;color:#f0f2f8;margin-bottom:8px}
+    body.light .updatelog-title{color:#1a1d24}
+    .updatelog-changes{list-style:none;display:flex;flex-direction:column;gap:6px}
+    .updatelog-changes li{font-size:.84rem;color:#5a6070;line-height:1.6;padding-left:14px;position:relative}
+    .updatelog-changes li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:#e8c84a}
+    .roadmap-track{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;border:1px solid #1e2330;background:#1e2330}
+    body.light .roadmap-track{border-color:#d0d4de;background:#d0d4de}
+    .roadmap-card{background:#111418;padding:34px 26px;transition:background .2s}
+    body.light .roadmap-card{background:#f4f5f7}
+    .roadmap-card:hover{background:#161a22}
+    body.light .roadmap-card:hover{background:#e8eaf2}
+    .roadmap-phase{font-family:'Space Mono',monospace;font-size:.59rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:9px}
+    .roadmap-card h3{font-size:.98rem;font-weight:700;color:#f0f2f8;margin-bottom:9px}
+    body.light .roadmap-card h3{color:#1a1d24}
+    .roadmap-card p{font-size:.83rem;color:#5a6070;line-height:1.7}
+    .roadmap-bar{margin-top:16px;height:3px;background:#1e2330;border-radius:2px;overflow:hidden}
+    body.light .roadmap-bar{background:#d0d4de}
+    .roadmap-fill{height:100%;border-radius:2px;transition:width 1.2s ease;width:0}
+    .roadmap-card.done .roadmap-phase{color:#4ae87a}
+    .roadmap-card.done .roadmap-fill{background:#4ae87a}
+    .roadmap-card.wip .roadmap-phase{color:#e8c84a}
+    .roadmap-card.wip .roadmap-fill{background:#e8c84a}
+    .roadmap-card.soon .roadmap-phase{color:#4ad4e8}
+    .roadmap-card.soon .roadmap-fill{background:#4ad4e8}
+    .roadmap-card.planned .roadmap-phase{color:#5a6070}
+    .roadmap-card.planned .roadmap-fill{background:#5a6070}
+    .team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;border:1px solid #1e2330;background:#1e2330}
+    body.light .team-grid{border-color:#d0d4de;background:#d0d4de}
+    .team-card{background:#111418;padding:38px 24px;text-align:center;transition:background .25s}
+    body.light .team-card{background:#f4f5f7}
+    .team-card:hover{background:#161a22}
+    body.light .team-card:hover{background:#e8eaf2}
+    .team-avatar{width:66px;height:66px;border-radius:50%;background:#1e2330;border:2px solid #e8c84a;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;color:#e8c84a;transition:border-color .25s,box-shadow .25s}
+    .team-card:hover .team-avatar{border-color:#4ad4e8;box-shadow:0 0 18px rgba(74,212,232,.28)}
+    .team-name{font-size:.96rem;font-weight:700;color:#f0f2f8;margin-bottom:3px}
+    body.light .team-name{color:#1a1d24}
+    .team-role{font-family:'Space Mono',monospace;font-size:.59rem;letter-spacing:.18em;text-transform:uppercase;color:#4ad4e8;margin-bottom:10px}
+    .team-desc{font-size:.81rem;color:#5a6070;line-height:1.65}
+    .partners-row{display:flex;border:1px solid #1e2330}
+    body.light .partners-row{border-color:#d0d4de}
+    .partner-card{flex:1;padding:38px 32px;background:#111418;border-right:1px solid #1e2330;transition:background .2s;position:relative;overflow:hidden}
+    body.light .partner-card{background:#f4f5f7;border-right-color:#d0d4de}
+    .partner-card:last-child{border-right:none}
+    .partner-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#e8c84a;transform:scaleY(0);transition:transform .35s}
+    .partner-card:hover{background:#161a22}
+    body.light .partner-card:hover{background:#e8eaf2}
+    .partner-card:hover::after{transform:scaleY(1)}
+    .partner-badge{font-family:'Space Mono',monospace;font-size:.59rem;letter-spacing:.22em;text-transform:uppercase;color:#5a6070;margin-bottom:8px}
+    .partner-card h3{font-size:1.4rem;font-weight:800;color:#e8c84a}
+    .partner-card p{margin-top:8px;font-size:.86rem;color:#5a6070;line-height:1.65}
+    .reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .review-card{padding:32px}
+    .review-stars{font-family:'Space Mono',monospace;font-size:.68rem;color:#e8c84a;letter-spacing:.1em;margin-bottom:12px}
+    .review-text{font-size:.87rem;color:#d6dae6;line-height:1.78;margin-bottom:18px}
+    body.light .review-text{color:#3a3f52}
+    .review-author{font-family:'Space Mono',monospace;font-size:.63rem;color:#5a6070;letter-spacing:.15em;text-transform:uppercase}
+    .review-author span{color:#4ad4e8}
+    .faq-list{border:1px solid #1e2330;overflow:hidden}
+    body.light .faq-list{border-color:#d0d4de}
+    .faq-item{border-bottom:1px solid #1e2330}
+    body.light .faq-item{border-bottom-color:#d0d4de}
+    .faq-item:last-child{border-bottom:none}
+    .faq-question{width:100%;background:#111418;border:none;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer;transition:background .2s;text-align:left}
+    body.light .faq-question{background:#f4f5f7;color:#1a1d24}
+    .faq-question:hover{background:#161a22}
+    body.light .faq-question:hover{background:#e8eaf2}
+    .faq-question span{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:600;color:#f0f2f8}
+    body.light .faq-question span{color:#1a1d24}
+    .faq-arrow{font-family:'Space Mono',monospace;font-size:.7rem;color:#e8c84a;flex-shrink:0;transition:transform .28s}
+    .faq-item.open .faq-arrow{transform:rotate(90deg)}
+    .faq-answer{background:#0d0f14;max-height:0;overflow:hidden;transition:max-height .38s ease,padding .25s ease;padding:0 32px}
+    body.light .faq-answer{background:#e8eaf0}
+    .faq-item.open .faq-answer{max-height:200px;padding:16px 32px 24px}
+    .faq-answer p{font-size:.87rem;color:#5a6070;line-height:1.82}
+    .admin-lock{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:88px 48px}
+    .admin-gate{border:1px solid #1e2330;background:#111418;padding:44px 38px;text-align:center;max-width:460px;margin:0 auto}
+    body.light .admin-gate{border-color:#d0d4de;background:#f4f5f7}
+    .admin-gate h3{font-family:'Space Mono',monospace;font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:#e8c84a;margin-bottom:7px}
+    .admin-gate p{font-size:.84rem;color:#5a6070;margin-bottom:22px}
+    .admin-input{width:100%;background:#0a0c10;border:1px solid #1e2330;color:#f0f2f8;font-family:'Space Mono',monospace;font-size:.8rem;padding:11px 14px;outline:none;margin-bottom:12px;transition:border-color .2s}
+    body.light .admin-input{background:#e8eaf0;border-color:#d0d4de;color:#1a1d24}
+    .admin-input:focus{border-color:#e8c84a}
+    .admin-input.error{border-color:#e84a4a}
+    .admin-err{font-family:'Space Mono',monospace;font-size:.63rem;color:#e84a4a;letter-spacing:.1em;margin-bottom:9px;display:none}
+    .admin-panel{display:none}
+    .admin-panel.visible{display:block}
+    .announce-form{border:1px solid #1e2330;background:#111418;padding:32px;margin-bottom:28px}
+    body.light .announce-form{border-color:#d0d4de;background:#f4f5f7}
+    .announce-form h3{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:#e8c84a;margin-bottom:18px}
+    .form-row{margin-bottom:12px}
+    .form-row label{display:block;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:#5a6070;margin-bottom:5px}
+    .form-row input,.form-row textarea,.form-row select{width:100%;background:#0a0c10;border:1px solid #1e2330;color:#f0f2f8;font-family:'Space Mono',monospace;font-size:.78rem;padding:9px 13px;outline:none;resize:vertical;transition:border-color .2s}
+    body.light .form-row input,body.light .form-row textarea,body.light .form-row select{background:#e8eaf0;border-color:#d0d4de;color:#1a1d24}
+    .form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:#e8c84a}
+    .form-row select option{background:#111418}
+    .attach-label{display:inline-block;padding:8px 16px;background:#1e2330;border:1px solid #2a3040;color:#d6dae6;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-top:5px}
+    .attach-label:hover{background:#252c3a}
+    .attach-preview{display:flex;flex-wrap:wrap;gap:9px;margin-top:10px}
+    .attach-thumb{position:relative;width:68px;height:68px;border:1px solid #1e2330;overflow:hidden}
+    .attach-thumb img{width:100%;height:100%;object-fit:cover}
+    .attach-thumb .attach-remove{position:absolute;top:2px;right:2px;width:15px;height:15px;background:#e84a4a;color:#fff;font-size:.55rem;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Space Mono',monospace}
+    .attach-file-chip{display:flex;align-items:center;gap:7px;background:#1e2330;border:1px solid #2a3040;padding:5px 10px;font-family:'Space Mono',monospace;font-size:.6rem;color:#4ad4e8}
+    .attach-file-chip .chip-remove{cursor:pointer;color:#e84a4a}
+    .form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+    .btn-post{background:#e8c84a;color:#0a0c10;border:none;padding:10px 22px;font-family:'Space Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+    .btn-post:hover{background:#d4b43a}
+    .btn-clear-all{background:transparent;color:#e84a4a;border:1px solid #e84a4a;padding:10px 18px;font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+    .btn-clear-all:hover{background:#e84a4a;color:#fff}
+    .btn-logout{background:transparent;color:#5a6070;border:1px solid #2a3040;padding:10px 16px;font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:color .2s,border-color .2s;margin-left:auto}
+    .btn-logout:hover{color:#f0f2f8;border-color:#5a6070}
+    .announce-list{display:flex;flex-direction:column;gap:1px;border:1px solid #1e2330;background:#1e2330}
+    body.light .announce-list{border-color:#d0d4de;background:#d0d4de}
+    .announce-empty{background:#111418;padding:38px;text-align:center;font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.15em;color:#5a6070}
+    body.light .announce-empty{background:#f4f5f7}
+    .announce-card{background:#111418;padding:26px 30px;animation:fadeUp .4s ease forwards}
+    body.light .announce-card{background:#f4f5f7}
+    .announce-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+    .announce-type-badge{font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;padding:3px 8px;border:1px solid}
+    .badge-update{color:#4ad4e8;border-color:#4ad4e8}
+    .badge-release{color:#4ae87a;border-color:#4ae87a}
+    .badge-maintenance{color:#e8c84a;border-color:#e8c84a}
+    .badge-general{color:#5a6070;border-color:#5a6070}
+    .announce-time{font-family:'Space Mono',monospace;font-size:.56rem;color:#5a6070;letter-spacing:.1em}
+    .announce-del{background:transparent;border:none;color:#5a6070;font-family:'Space Mono',monospace;font-size:.63rem;cursor:pointer;transition:color .2s;padding:2px 5px}
+    .announce-del:hover{color:#e84a4a}
+    .announce-title-text{font-size:.97rem;font-weight:700;color:#f0f2f8;margin-bottom:7px}
+    body.light .announce-title-text{color:#1a1d24}
+    .announce-body{font-size:.85rem;color:#d6dae6;line-height:1.75;white-space:pre-wrap}
+    body.light .announce-body{color:#3a3f52}
+    .announce-attachments{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+    .ann-img{width:96px;height:96px;object-fit:cover;border:1px solid #1e2330;cursor:pointer;transition:opacity .2s}
+    .ann-img:hover{opacity:.8}
+    .ann-file-link{display:inline-flex;align-items:center;gap:5px;background:#1e2330;padding:5px 11px;font-family:'Space Mono',monospace;font-size:.6rem;color:#4ad4e8;text-decoration:none;border:1px solid #2a3040;transition:background .2s}
+    .ann-file-link:hover{background:#252c3a}
+    .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:none;align-items:center;justify-content:center}
+    .lightbox.open{display:flex}
+    .lightbox img{max-width:90vw;max-height:90vh;border:1px solid #1e2330}
+    .lightbox-close{position:absolute;top:22px;right:28px;font-family:'Space Mono',monospace;font-size:.78rem;color:#e8c84a;cursor:pointer;letter-spacing:.15em}
+    .chat-bubble{position:fixed;bottom:32px;left:32px;z-index:300;width:48px;height:48px;background:#e8c84a;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,background .2s;box-shadow:0 4px 20px rgba(232,200,74,.3)}
+    .chat-bubble:hover{transform:scale(1.1);background:#d4b43a}
+    .chat-bubble svg{width:22px;height:22px;fill:#0a0c10}
+    .chat-unread{position:absolute;top:-3px;right:-3px;width:14px;height:14px;background:#e84a4a;border-radius:50%;font-family:'Space Mono',monospace;font-size:.55rem;color:#fff;display:none;align-items:center;justify-content:center}
+    .chat-unread.show{display:flex}
+    .chat-window{position:fixed;bottom:92px;left:32px;z-index:300;width:320px;height:420px;background:#111418;border:1px solid #1e2330;display:flex;flex-direction:column;transform:scale(.9) translateY(20px);opacity:0;pointer-events:none;transition:all .25s;transform-origin:bottom left}
+    body.light .chat-window{background:#f4f5f7;border-color:#d0d4de}
+    .chat-window.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+    .chat-header{background:#0d0f14;border-bottom:1px solid #1e2330;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    body.light .chat-header{background:#e8eaf0;border-bottom-color:#d0d4de}
+    .chat-header-title{font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;color:#e8c84a;letter-spacing:.1em}
+    .chat-header-sub{font-family:'Space Mono',monospace;font-size:.58rem;color:#5a6070;letter-spacing:.08em;margin-top:2px}
+    .chat-close{background:none;border:none;color:#5a6070;font-family:'Space Mono',monospace;font-size:.7rem;cursor:pointer;transition:color .2s;letter-spacing:.1em}
+    .chat-close:hover{color:#e8c84a}
+    .chat-msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+    .chat-msgs::-webkit-scrollbar{width:3px}
+    .chat-msgs::-webkit-scrollbar-thumb{background:#1e2330;border-radius:2px}
+    .chat-msg{max-width:80%;animation:fadeUp .3s ease forwards}
+    .chat-msg.them{align-self:flex-start}
+    .chat-msg.me{align-self:flex-end}
+    .chat-bubble-msg{padding:9px 13px;font-size:.82rem;line-height:1.55;border-radius:2px}
+    .chat-msg.them .chat-bubble-msg{background:#1e2330;color:#d6dae6}
+    body.light .chat-msg.them .chat-bubble-msg{background:#dde0ea;color:#3a3f52}
+    .chat-msg.me .chat-bubble-msg{background:#e8c84a;color:#0a0c10}
+    .chat-msg-time{font-family:'Space Mono',monospace;font-size:.52rem;color:#5a6070;margin-top:4px;text-align:right}
+    .chat-msg.them .chat-msg-time{text-align:left}
+    .chat-name-tag{font-family:'Space Mono',monospace;font-size:.55rem;color:#5a6070;letter-spacing:.1em;margin-bottom:3px}
+    .chat-input-row{border-top:1px solid #1e2330;padding:10px 14px;display:flex;gap:8px;flex-shrink:0}
+    body.light .chat-input-row{border-top-color:#d0d4de}
+    .chat-name-input{width:80px;background:#0a0c10;border:1px solid #1e2330;color:#f0f2f8;font-family:'Space Mono',monospace;font-size:.7rem;padding:8px 10px;outline:none;transition:border-color .2s;flex-shrink:0}
+    body.light .chat-name-input{background:#e8eaf0;border-color:#d0d4de;color:#1a1d24}
+    .chat-name-input:focus{border-color:#e8c84a}
+    .chat-text-input{flex:1;background:#0a0c10;border:1px solid #1e2330;color:#f0f2f8;font-family:'Space Mono',monospace;font-size:.7rem;padding:8px 10px;outline:none;transition:border-color .2s;resize:none}
+    body.light .chat-text-input{background:#e8eaf0;border-color:#d0d4de;color:#1a1d24}
+    .chat-text-input:focus{border-color:#e8c84a}
+    .chat-send{background:#e8c84a;border:none;color:#0a0c10;font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.08em;padding:8px 12px;cursor:pointer;transition:background .2s;text-transform:uppercase;flex-shrink:0}
+    .chat-send:hover{background:#d4b43a}
+    .chat-online{display:flex;align-items:center;gap:5px}
+    .chat-online-dot{width:6px;height:6px;border-radius:50%;background:#4ae87a;animation:pulse-dot 2s infinite}
+    .discord-banner{position:relative;z-index:1;background:#111418;border-top:1px solid #1e2330;border-bottom:1px solid #1e2330;padding:84px 48px;text-align:center;overflow:hidden}
+    body.light .discord-banner{background:#ebedf2;border-color:#d0d4de}
+    .discord-banner::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:700px;height:1px;background:linear-gradient(90deg,transparent,#e8c84a,transparent)}
+    .discord-banner::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:700px;height:1px;background:linear-gradient(90deg,transparent,#4ad4e8,transparent)}
+    .discord-banner h2{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:800;color:#f0f2f8;margin-bottom:11px}
+    body.light .discord-banner h2{color:#1a1d24}
+    .discord-banner p{color:#5a6070;font-size:.93rem;margin-bottom:30px;max-width:400px;margin-left:auto;margin-right:auto;line-height:1.75}
+    footer{position:relative;z-index:1;padding:32px 48px;border-top:1px solid #1e2330;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    body.light footer{border-top-color:#d0d4de}
+    .footer-logo{font-family:'Space Mono',monospace;font-weight:700;font-size:.82rem;color:#e8c84a;letter-spacing:.08em}
+    .footer-links{display:flex;gap:20px;flex-wrap:wrap}
+    .footer-links a{font-family:'Space Mono',monospace;font-size:.61rem;color:#5a6070;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;transition:color .2s}
+    .footer-links a:hover{color:#e8c84a}
+    .footer-note{font-family:'Space Mono',monospace;font-size:.59rem;color:#5a6070;letter-spacing:.1em}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+    .slide-left{opacity:0;transform:translateX(-32px);transition:opacity .7s ease,transform .7s ease}
+    .slide-right{opacity:0;transform:translateX(32px);transition:opacity .7s ease,transform .7s ease}
+    .fade-in.visible,.slide-left.visible,.slide-right.visible{opacity:1;transform:translate(0)}
+
+    /* ====================================================
+       FEATURE 1: AMBIENT SOUND PLAYER
+    ==================================================== */
+    .sound-player{position:fixed;bottom:32px;right:80px;z-index:250;display:flex;align-items:center;gap:0;background:#111418;border:1px solid #1e2330;overflow:hidden;transition:width .35s ease}
+    body.light .sound-player{background:#f4f5f7;border-color:#d0d4de}
+    .sound-play-btn{width:42px;height:42px;background:#e8c84a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+    .sound-play-btn:hover{background:#d4b43a}
+    .sound-play-btn svg{width:16px;height:16px;fill:#0a0c10}
+    .sound-panel{display:flex;align-items:center;gap:10px;padding:0 14px;width:200px;overflow:hidden}
+    .sound-label{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#5a6070;white-space:nowrap;flex-shrink:0}
+    .sound-vol{-webkit-appearance:none;appearance:none;width:80px;height:2px;background:#1e2330;outline:none;cursor:pointer;flex-shrink:0}
+    body.light .sound-vol{background:#d0d4de}
+    .sound-vol::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:#e8c84a;cursor:pointer}
+    .sound-bars{display:flex;align-items:flex-end;gap:2px;height:14px;flex-shrink:0}
+    .sound-bars span{width:3px;background:#e8c84a;border-radius:1px;transition:height .1s}
+    .sound-bars.playing span:nth-child(1){animation:bar1 .6s ease-in-out infinite}
+    .sound-bars.playing span:nth-child(2){animation:bar2 .7s ease-in-out infinite .15s}
+    .sound-bars.playing span:nth-child(3){animation:bar3 .5s ease-in-out infinite .08s}
+    .sound-bars span{height:3px}
+    @keyframes bar1{0%,100%{height:3px}50%{height:12px}}
+    @keyframes bar2{0%,100%{height:6px}50%{height:14px}}
+    @keyframes bar3{0%,100%{height:4px}50%{height:9px}}
+
+    /* ====================================================
+       FEATURE 2: STAFF APPLICATION FORM
+    ==================================================== */
+    .apply-wrap{border:1px solid #1e2330;background:#111418;overflow:hidden}
+    body.light .apply-wrap{border-color:#d0d4de;background:#f4f5f7}
+    .apply-inner{display:grid;grid-template-columns:1fr 1fr}
+    .apply-form-col{padding:44px 40px;border-right:1px solid #1e2330}
+    body.light .apply-form-col{border-right-color:#d0d4de}
+    .apply-queue-col{padding:44px 40px;background:#0d0f14}
+    body.light .apply-queue-col{background:#e8eaf0}
+    .af-label{display:block;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:#5a6070;margin-bottom:6px}
+    .af-input,.af-textarea,.af-select{width:100%;background:#0a0c10;border:1px solid #1e2330;color:#f0f2f8;font-family:'Space Mono',monospace;font-size:.78rem;padding:11px 14px;outline:none;resize:vertical;transition:border-color .22s;margin-bottom:14px}
+    body.light .af-input,body.light .af-textarea,body.light .af-select{background:#f4f5f7;border-color:#d0d4de;color:#1a1d24}
+    .af-input:focus,.af-textarea:focus,.af-select:focus{border-color:#e8c84a}
+    .af-select option{background:#111418}
+    .af-submit{width:100%;background:#e8c84a;color:#0a0c10;border:none;padding:13px;font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+    .af-submit:hover{background:#d4b43a}
+    .aq-title{font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:#e8c84a;margin-bottom:18px}
+    .aq-list{display:flex;flex-direction:column;gap:10px}
+    .aq-item{background:#111418;border:1px solid #1e2330;padding:14px 16px;animation:fadeUp .4s ease forwards;position:relative}
+    body.light .aq-item{background:#f4f5f7;border-color:#d0d4de}
+    .aq-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#4ae87a}
+    .aq-name{font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;color:#f0f2f8;letter-spacing:.1em}
+    body.light .aq-name{color:#1a1d24}
+    .aq-role{font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;color:#4ae87a;margin-top:2px}
+    .aq-msg{font-size:.8rem;color:#5a6070;line-height:1.55;margin-top:7px}
+    .aq-time{font-family:'Space Mono',monospace;font-size:.52rem;color:#5a6070;margin-top:6px}
+    .aq-empty{font-family:'Space Mono',monospace;font-size:.63rem;letter-spacing:.12em;color:#5a6070;padding:16px 0;text-align:center}
+
+    /* ====================================================
+       FEATURE 3: VISITOR HIT COUNTER
+    ==================================================== */
+    .visitor-strip{position:relative;z-index:2;background:#0a0c10;border-bottom:1px solid #1e2330;padding:10px 48px;display:flex;align-items:center;justify-content:space-between;gap:18px;overflow-x:auto}
+    body.light .visitor-strip{background:#ebedf2;border-bottom-color:#d0d4de}
+    .visitor-left{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+    .visitor-item{display:flex;align-items:center;gap:10px}
+    .visitor-icon{font-family:'Space Mono',monospace;font-size:.7rem;color:#5a6070}
+    .visitor-num{font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:#e8c84a;letter-spacing:.04em;min-width:60px;display:inline-block}
+    .visitor-sublabel{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#5a6070}
+    .visitor-sep{width:1px;height:28px;background:#1e2330;flex-shrink:0}
+    body.light .visitor-sep{background:#d0d4de}
+    .visitor-right{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#5a6070;flex-shrink:0}
+    .vis-live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ae87a;box-shadow:0 0 5px #4ae87a;margin-right:6px;vertical-align:middle;animation:pulse-dot 2s infinite}
+
+    /* ====================================================
+       FEATURE 4: COOKIE CONSENT BANNER
+    ==================================================== */
+    .cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:8000;background:#111418;border-top:1px solid #e8c84a;padding:18px 48px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;transform:translateY(100%);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+    body.light .cookie-banner{background:#f4f5f7;border-top-color:#e8c84a}
+    .cookie-banner.show{transform:translateY(0)}
+    .cookie-text{font-family:'Space Mono',monospace;font-size:.65rem;color:#5a6070;letter-spacing:.06em;line-height:1.7;max-width:600px}
+    .cookie-text span{color:#e8c84a}
+    .cookie-actions{display:flex;gap:10px;flex-shrink:0}
+    .cookie-accept{background:#e8c84a;color:#0a0c10;border:none;padding:9px 20px;font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+    .cookie-accept:hover{background:#d4b43a}
+    .cookie-decline{background:transparent;color:#5a6070;border:1px solid #2a3040;padding:9px 18px;font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+    .cookie-decline:hover{color:#f0f2f8;border-color:#5a6070}
+
+    /* ====================================================
+       FEATURE 5: VIDEO SHOWCASE SECTION
+    ==================================================== */
+    .video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;border:1px solid #1e2330;background:#1e2330}
+    body.light .video-grid{border-color:#d0d4de;background:#d0d4de}
+    .video-card{background:#111418;overflow:hidden;position:relative;transition:background .2s}
+    body.light .video-card{background:#f4f5f7}
+    .video-card:hover{background:#161a22}
+    body.light .video-card:hover{background:#e8eaf2}
+    .video-embed-wrap{position:relative;width:100%;padding-bottom:56.25%;background:#0d0f14;overflow:hidden}
+    .video-embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+    .video-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;background:#0d0f14;transition:background .2s}
+    .video-placeholder:hover{background:#111820}
+    .video-play-icon{width:52px;height:52px;border-radius:50%;background:rgba(232,200,74,.15);border:2px solid #e8c84a;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s}
+    .video-placeholder:hover .video-play-icon{background:rgba(232,200,74,.28);transform:scale(1.08)}
+    .video-play-icon svg{width:20px;height:20px;fill:#e8c84a;margin-left:3px}
+    .video-placeholder-label{font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:#5a6070}
+    .video-info{padding:20px 22px}
+    .video-tag{font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:#4ad4e8;margin-bottom:6px}
+    .video-title{font-size:.96rem;font-weight:700;color:#f0f2f8;margin-bottom:5px}
+    body.light .video-title{color:#1a1d24}
+    .video-desc{font-size:.8rem;color:#5a6070;line-height:1.65}
+    .video-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#e8c84a,#4ad4e8);transform:scaleX(0);transform-origin:left;transition:transform .38s;z-index:1}
+    .video-card:hover::before{transform:scaleX(1)}
+
+    @media(max-width:768px){
+      nav{padding:13px 18px}
+      .nav-links{gap:10px}
+      .nav-links a{font-size:.65rem}
+      section{padding:60px 18px}
+      .divider{margin:0 18px}
+      .stats-strip{grid-template-columns:repeat(2,1fr)}
+      .partners-row{flex-direction:column}
+      .partner-card{border-right:none;border-bottom:1px solid #1e2330}
+      footer{padding:24px 18px;flex-direction:column;align-items:flex-start}
+      .discord-banner{padding:60px 18px}
+      .faq-question{padding:17px 18px}
+      .faq-answer{padding:0 18px}
+      .faq-item.open .faq-answer{padding:13px 18px 20px}
+      .cursor,.cursor-ring{display:none}
+      .updatelog-entry{grid-template-columns:1fr}
+      .updatelog-left{border-right:none;border-bottom:1px solid #1e2330}
+      .chat-window{left:12px;right:12px;width:auto}
+      .admin-lock{padding:60px 18px}
+      .announce-form{padding:22px 16px}
+      .announce-card{padding:20px 16px}
+      .status-strip{padding:11px 18px}
+      .sound-player{right:12px;bottom:88px}
+      .apply-inner{grid-template-columns:1fr}
+      .apply-form-col{border-right:none;border-bottom:1px solid #1e2330}
+      .visitor-strip{padding:10px 18px}
+      .cookie-banner{padding:16px 18px}
+      .video-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body style="background:#0a0c10;min-height:100vh;">
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+  <canvas id="particles"></canvas>
+
+  <!-- FEATURE 4: COOKIE CONSENT BANNER -->
+  <div class="cookie-banner" id="cookieBanner">
+    <div class="cookie-text">
+      <span>Fennecs Dev Group</span> uses localStorage to save your announcements and preferences.
+      No personal data is sold or shared. By continuing you accept our use of local storage.
+    </div>
+    <div class="cookie-actions">
+      <button class="cookie-accept" onclick="acceptCookies()">Accept</button>
+      <button class="cookie-decline" onclick="declineCookies()">Decline</button>
+    </div>
+  </div>
+
+  <!-- FEATURE 1: AMBIENT SOUND PLAYER -->
+  <div class="sound-player" id="soundPlayer">
+    <button class="sound-play-btn" id="soundBtn" onclick="toggleSound()" title="Toggle ambient sound">
+      <svg id="soundIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+    </button>
+    <div class="sound-panel">
+      <div class="sound-bars" id="soundBars">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="sound-label">Ambient</span>
+      <input type="range" class="sound-vol" id="soundVol" min="0" max="100" value="30" oninput="setVolume(this.value)"/>
+    </div>
+  </div>
+
+  <!-- BACK TO TOP -->
+  <button class="back-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">^</button>
+
+  <!-- LIVE CHAT -->
+  <button class="chat-bubble" id="chatBubble" onclick="toggleChat()" aria-label="Open chat">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 10H6V10h12v2zm0-3H6V7h12v2z"/></svg>
+    <span class="chat-unread" id="chatUnread">1</span>
+  </button>
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <div>
+        <div class="chat-header-title">Fennecs Dev Chat</div>
+        <div class="chat-header-sub"><span class="chat-online"><span class="chat-online-dot"></span>Live community chat</span></div>
+      </div>
+      <button class="chat-close" onclick="toggleChat()">CLOSE</button>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="chat-msg them">
+        <div class="chat-name-tag">FennecsDev</div>
+        <div class="chat-bubble-msg">Hey, welcome to Fennecs Dev Group. Feel free to ask about commissions or collabs.</div>
+        <div class="chat-msg-time">Today</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-name-input" id="chatName" placeholder="Name" maxlength="16"/>
+      <textarea class="chat-text-input" id="chatInput" placeholder="Type a message..." rows="1" onkeydown="chatKey(event)"></textarea>
+      <button class="chat-send" onclick="sendMsg()">Send</button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <a href="#" class="nav-logo">FENNECS DEV</a>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#showcase">Showcase</a></li>
+      <li><a href="#commissions">Commissions</a></li>
+      <li><a href="#collabs">Collabs</a></li>
+      <li><a href="#apply">Join Us</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#updatelog">Updates</a></li>
+      <li><a href="#announcements">News</a></li>
+      <li><a href="#team">Team</a></li>
+      <li><a href="#partners">Partners</a></li>
+      <li><a href="#reviews">Reviews</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#community">Community</a></li>
+      <li><button class="theme-btn" onclick="toggleTheme()" id="themeBtn">Light</button></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-orb"></div>
+    <p class="hero-tag">Roblox Development Studio</p>
+    <h1>Fennecs<span>Dev Group</span></h1>
+    <div class="typewriter"><span id="tw-text"></span><span class="tw-cursor"></span></div>
+    <p class="hero-sub">Building polished Roblox games and animations. Specialists in Moon Animator and Roblox Studio production. Open to collaborations.</p>
+    <div class="hero-actions">
+      <a href="#services" class="btn btn-primary">Our Services</a>
+      <a href="https://discord.gg/SPYcV66cp" target="_blank" class="btn btn-secondary">Discord Server</a>
+    </div>
+    <div class="scroll-hint">scroll</div>
+  </div>
+
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <span class="ticker-item h1"><span class="dot"></span>New Update Live</span>
+      <span class="ticker-item"><span class="dot"></span>Moon Animator Combat Rig Pack</span>
+      <span class="ticker-item h2"><span class="dot"></span>Collabs Now Open</span>
+      <span class="ticker-item"><span class="dot"></span>Roblox Studio Map Build Delivered</span>
+      <span class="ticker-item h1"><span class="dot"></span>Partner: RBLX Hub</span>
+      <span class="ticker-item"><span class="dot"></span>Lua Datastore System Completed</span>
+      <span class="ticker-item h2"><span class="dot"></span>Join the Discord Server</span>
+      <span class="ticker-item"><span class="dot"></span>Walk Cycle Rig Released</span>
+      <span class="ticker-item h1"><span class="dot"></span>Fennecs Dev Group</span>
+      <span class="ticker-item"><span class="dot"></span>Moon Animator Combat Rig Pack</span>
+      <span class="ticker-item h2"><span class="dot"></span>Collabs Now Open</span>
+      <span class="ticker-item"><span class="dot"></span>Roblox Studio Map Build Delivered</span>
+      <span class="ticker-item h1"><span class="dot"></span>Partner: RBLX Hub</span>
+      <span class="ticker-item"><span class="dot"></span>Lua Datastore System Completed</span>
+      <span class="ticker-item h2"><span class="dot"></span>Join the Discord Server</span>
+      <span class="ticker-item"><span class="dot"></span>Walk Cycle Rig Released</span>
+      <span class="ticker-item h1"><span class="dot"></span>Fennecs Dev Group</span>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-strip">
+    <span class="status-strip-label">Status</span>
+    <div class="status-items">
+      <span class="status-dot-item"><span class="sdot green"></span>Website Online</span>
+      <span class="status-dot-item"><span class="sdot green"></span>Commissions Open</span>
+      <span class="status-dot-item"><span class="sdot green"></span>Collabs Open</span>
+      <span class="status-dot-item"><span class="sdot green"></span>Staff Apps Open</span>
+      <span class="status-dot-item"><span class="sdot blue"></span>Discord Active</span>
+    </div>
+  </div>
+
+  <!-- FEATURE 3: VISITOR HIT COUNTER -->
+  <div class="visitor-strip">
+    <div class="visitor-left">
+      <div class="visitor-item">
+        <span class="visitor-icon">&#128065;</span>
+        <div>
+          <div><span class="visitor-num" id="visitorTotal">0</span></div>
+          <div class="visitor-sublabel">Total Visits</div>
+        </div>
+      </div>
+      <div class="visitor-sep"></div>
+      <div class="visitor-item">
+        <span class="visitor-icon">&#9889;</span>
+        <div>
+          <div><span class="visitor-num" id="visitorToday">0</span></div>
+          <div class="visitor-sublabel">Visits Today</div>
+        </div>
+      </div>
+      <div class="visitor-sep"></div>
+      <div class="visitor-item">
+        <span class="visitor-icon">&#128101;</span>
+        <div>
+          <div><span class="visitor-num" id="visitorOnline">0</span></div>
+          <div class="visitor-sublabel">Online Now</div>
+        </div>
+      </div>
+    </div>
+    <div class="visitor-right"><span class="vis-live-dot"></span>Live Counter</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <div class="stat-num" data-target="40">0</div>
+      <div class="stat-label">Commissions Done</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="12">0</div>
+      <div class="stat-label">Games Built</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="6">0</div>
+      <div class="stat-label">Team Members</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" data-target="100">0</div>
+      <div class="stat-label">Client Satisfaction %</div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <p class="section-label fade-in">What We Do</p>
+    <h2 class="section-title fade-in">Roblox Studio and Moon Animator specialists.</h2>
+    <p class="section-desc fade-in">We handle every layer of Roblox development, from clean scripting to frame-perfect animation work in Moon Animator.</p>
+    <div class="services-grid grid-1px">
+      <div class="service-card card-base fade-in">
+        <p class="service-card-num">01</p>
+        <h3>Moon Animator Rigs</h3>
+        <p>Custom character rigs and keyframed animation sequences. Walk cycles, cutscenes, combat, and more.</p>
+        <span class="service-tag">Animation</span>
+      </div>
+      <div class="service-card card-base fade-in">
+        <p class="service-card-num">02</p>
+        <h3>Roblox Studio Builds</h3>
+        <p>Full map and environment builds inside Roblox Studio. Detailed, optimized, and matched to your game aesthetic.</p>
+        <span class="service-tag">Building</span>
+      </div>
+      <div class="service-card card-base fade-in">
+        <p class="service-card-num">03</p>
+        <h3>Scripting and Systems</h3>
+        <p>Lua scripting for game systems, UI, combat frameworks, datastores, and custom mechanics.</p>
+        <span class="service-tag">Scripting</span>
+      </div>
+      <div class="service-card card-base fade-in">
+        <p class="service-card-num">04</p>
+        <h3>Cutscene Production</h3>
+        <p>Full cinematic cutscenes using Moon Animator, camera sequences, and tween animation pipelines.</p>
+        <span class="service-tag">Cinematic</span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- FEATURE 5: VIDEO SHOWCASE -->
+  <section id="showcase">
+    <p class="section-label fade-in">Video Showcase</p>
+    <h2 class="section-title fade-in">Watch our work in action.</h2>
+    <p class="section-desc fade-in">Demo reels and project highlights from Fennecs Dev Group. Replace the placeholder IDs below with your real YouTube video IDs.</p>
+    <div class="video-grid fade-in">
+      <div class="video-card">
+        <div class="video-embed-wrap">
+          <div class="video-placeholder" id="vp1" onclick="loadVideo('vp1','dQw4w9WgXcQ')">
+            <div class="video-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+            <span class="video-placeholder-label">Click to Play</span>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="video-tag">Animation Reel</div>
+          <div class="video-title">Combat Animation Pack 2026</div>
+          <div class="video-desc">Full showcase of our latest Moon Animator combat rig set. 12 animations, R15 compatible.</div>
+        </div>
+      </div>
+      <div class="video-card">
+        <div class="video-embed-wrap">
+          <div class="video-placeholder" id="vp2" onclick="loadVideo('vp2','dQw4w9WgXcQ')">
+            <div class="video-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+            <span class="video-placeholder-label">Click to Play</span>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="video-tag">Map Build</div>
+          <div class="video-title">Feudal Japan Environment Tour</div>
+          <div class="video-desc">Flythrough of our open-world Japan map build. Optimized terrain, lighting, and modular assets.</div>
+        </div>
+      </div>
+      <div class="video-card">
+        <div class="video-embed-wrap">
+          <div class="video-placeholder" id="vp3" onclick="loadVideo('vp3','dQw4w9WgXcQ')">
+            <div class="video-play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+            <span class="video-placeholder-label">Click to Play</span>
+          </div>
+        </div>
+        <div class="video-info">
+          <div class="video-tag">Cinematic</div>
+          <div class="video-title">Intro Cutscene — Client Project</div>
+          <div class="video-desc">60-second opening cinematic with dialogue, camera movement, and scripted trigger sequences.</div>
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-family:'Space Mono',monospace;font-size:.62rem;color:#5a6070;letter-spacing:.1em;padding:0 0 0 2px;" class="fade-in">
+      To use your own videos: replace the YouTube video ID in each <code style="color:#e8c84a">loadVideo()</code> call inside the HTML.
+    </p>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- COMMISSIONS -->
+  <section id="commissions">
+    <p class="section-label fade-in">Commissions</p>
+    <h2 class="section-title fade-in">Open for work.</h2>
+    <p class="section-desc fade-in">We are currently accepting commissions. Reach out on Discord to discuss your project and get a quote.</p>
+    <div class="commission-grid grid-1px">
+      <div class="commission-card card-base slide-left">
+        <p class="commission-card-num">01</p>
+        <h3>Moon Animator Packs</h3>
+        <p class="commission-type">Animation Commission</p>
+        <p>Custom animation sets including combat, idle, movement, and cinematic sequences. Priced per rig or per set.</p>
+        <span class="commission-status status-open">Open</span>
+      </div>
+      <div class="commission-card card-base fade-in">
+        <p class="commission-card-num">02</p>
+        <h3>Studio Map Builds</h3>
+        <p class="commission-type">Environment Commission</p>
+        <p>Full environment and map builds inside Roblox Studio. Optimized for performance and matched to your game look.</p>
+        <span class="commission-status status-open">Open</span>
+      </div>
+      <div class="commission-card card-base fade-in">
+        <p class="commission-card-num">03</p>
+        <h3>Lua Scripting</h3>
+        <p class="commission-type">Scripting Commission</p>
+        <p>Game systems, UI, combat, datastores, and custom mechanics. Clean, commented code ready for your project.</p>
+        <span class="commission-status status-open">Open</span>
+      </div>
+      <div class="commission-card card-base slide-right">
+        <p class="commission-card-num">04</p>
+        <h3>Full Game Package</h3>
+        <p class="commission-type">Full Development</p>
+        <p>Complete game development including building, scripting, and animation. Best for teams with a clear game concept.</p>
+        <span class="commission-status status-open">Open</span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- COLLABS -->
+  <section id="collabs">
+    <p class="section-label fade-in">Collaborations</p>
+    <h2 class="section-title fade-in">Work with us.</h2>
+    <p class="section-desc fade-in">We are open to collaborating with other Roblox developers, groups, and studios.</p>
+    <div class="collabs-grid grid-1px">
+      <div class="collab-card card-base fade-in">
+        <span class="collab-status-tag cs-open">Open</span>
+        <h3>Developer Collab</h3>
+        <p>Roblox scripter, builder, or animator looking to work together? We are open to teaming up on shared game ideas.</p>
+      </div>
+      <div class="collab-card card-base fade-in">
+        <span class="collab-status-tag cs-open">Open</span>
+        <h3>Group Collab</h3>
+        <p>Got a Roblox dev group and want to partner on a game, event, or community project? Get in touch.</p>
+      </div>
+      <div class="collab-card card-base fade-in">
+        <span class="collab-status-tag cs-interest">Interest Only</span>
+        <h3>Sponsor Collab</h3>
+        <p>Interested in sponsoring Fennecs Dev Group content or games? Reach out on Discord to discuss opportunities.</p>
+      </div>
+      <div class="collab-card card-base fade-in">
+        <span class="collab-status-tag cs-open">Open</span>
+        <h3>How to Collab</h3>
+        <p>Join our Discord and message in the collabs channel. Describe your project, team, and what you are looking for.</p>
+      </div>
+    </div>
+    <div style="margin-top:28px;" class="fade-in">
+      <a href="https://discord.gg/SPYcV66cp" target="_blank" class="btn btn-secondary">Reach Out on Discord</a>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- FEATURE 2: STAFF APPLICATION -->
+  <section id="apply">
+    <p class="section-label fade-in">Join the Team</p>
+    <h2 class="section-title fade-in">Staff applications open.</h2>
+    <p class="section-desc fade-in">Want to build with Fennecs Dev Group? Submit an application below. We review all submissions and follow up on Discord.</p>
+    <div class="apply-wrap fade-in">
+      <div class="apply-inner">
+        <div class="apply-form-col">
+          <div style="margin-bottom:14px;">
+            <label class="af-label">Your Roblox Username</label>
+            <input class="af-input" id="afName" placeholder="e.g. SkillDev_X" maxlength="40"/>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="af-label">Role Applying For</label>
+            <select class="af-select" id="afRole">
+              <option>Moon Animator / Animator</option>
+              <option>Roblox Studio Builder</option>
+              <option>Lua Scripter</option>
+              <option>Cinematic Producer</option>
+              <option>Community Manager</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="af-label">Experience Level</label>
+            <select class="af-select" id="afExp">
+              <option>Beginner (under 6 months)</option>
+              <option>Intermediate (6m - 2 years)</option>
+              <option>Advanced (2+ years)</option>
+              <option>Professional</option>
+            </select>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="af-label">Why do you want to join?</label>
+            <textarea class="af-textarea" id="afMsg" rows="5" placeholder="Tell us about yourself, your skills, and why you want to join Fennecs Dev Group..."></textarea>
+          </div>
+          <button class="af-submit" onclick="submitApplication()">Submit Application</button>
+        </div>
+        <div class="apply-queue-col">
+          <div class="aq-title">Recent Applications</div>
+          <div class="aq-list" id="aqList">
+            <div class="aq-empty" id="aqEmpty">No applications yet.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- ROADMAP -->
+  <section id="roadmap">
+    <p class="section-label fade-in">Roadmap</p>
+    <h2 class="section-title fade-in">What is coming next.</h2>
+    <p class="section-desc fade-in">Development milestones for Fennecs Dev Group.</p>
+    <div class="roadmap-track">
+      <div class="roadmap-card done fade-in">
+        <p class="roadmap-phase">Phase 1 / Done</p>
+        <h3>Group Founded</h3>
+        <p>Fennecs Dev Group established. Team assembled and first commissions taken on.</p>
+        <div class="roadmap-bar"><div class="roadmap-fill" data-width="100"></div></div>
+      </div>
+      <div class="roadmap-card done fade-in">
+        <p class="roadmap-phase">Phase 2 / Done</p>
+        <h3>Website Launch</h3>
+        <p>Official developer website launched with services, commissions, team, and Discord integration.</p>
+        <div class="roadmap-bar"><div class="roadmap-fill" data-width="100"></div></div>
+      </div>
+      <div class="roadmap-card wip fade-in">
+        <p class="roadmap-phase">Phase 3 / In Progress</p>
+        <h3>Collab Network</h3>
+        <p>Building out our collab network. Connecting with Roblox groups and developers for joint projects.</p>
+        <div class="roadmap-bar"><div class="roadmap-fill" data-width="55"></div></div>
+      </div>
+      <div class="roadmap-card soon fade-in">
+        <p class="roadmap-phase">Phase 4 / Soon</p>
+        <h3>Original Game</h3>
+        <p>An original Roblox game built fully in-house. Announcement coming on Discord.</p>
+        <div class="roadmap-bar"><div class="roadmap-fill" data-width="12"></div></div>
+      </div>
+      <div class="roadmap-card planned fade-in">
+        <p class="roadmap-phase">Phase 5 / Planned</p>
+        <h3>Commission Portal</h3>
+        <p>A dedicated online commission portal with order tracking and contact forms.</p>
+        <div class="roadmap-bar"><div class="roadmap-fill" data-width="0"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- UPDATE LOG -->
+  <section id="updatelog">
+    <p class="section-label fade-in">Update Log</p>
+    <h2 class="section-title fade-in">Website and group changes.</h2>
+    <p class="section-desc fade-in">A full history of every update made to Fennecs Dev Group and this website.</p>
+    <div class="updatelog-list fade-in">
+      <div class="updatelog-entry">
+        <div class="updatelog-left">
+          <span class="updatelog-version">v2.0.0</span>
+          <span class="updatelog-date">May 2026</span>
+          <span class="updatelog-tag utag-major">Major</span>
+        </div>
+        <div class="updatelog-right">
+          <div class="updatelog-title">Five New Features Update</div>
+          <ul class="updatelog-changes">
+            <li>Added ambient sound player with volume control and animated bars</li>
+            <li>Added staff application form with live recent applications queue</li>
+            <li>Added visitor hit counter strip tracking total, today, and online</li>
+            <li>Added cookie and local storage consent banner</li>
+            <li>Added video showcase section with click-to-play YouTube embeds</li>
+            <li>Added Video Showcase and Join Us nav links</li>
+            <li>Updated status strip to show Staff Apps Open</li>
+          </ul>
+        </div>
+      </div>
+      <div class="updatelog-entry">
+        <div class="updatelog-left">
+          <span class="updatelog-version">v1.5.0</span>
+          <span class="updatelog-date">May 2026</span>
+          <span class="updatelog-tag utag-major">Major</span>
+        </div>
+        <div class="updatelog-right">
+          <div class="updatelog-title">Collabs Update and Full Rebuild</div>
+          <ul class="updatelog-changes">
+            <li>Added full Collaborations section with 4 collab types</li>
+            <li>Added live chat widget, dark/light mode toggle, update log</li>
+            <li>Removed references to previous project (TOS breach)</li>
+            <li>Updated Discord link to new server</li>
+          </ul>
+        </div>
+      </div>
+      <div class="updatelog-entry">
+        <div class="updatelog-left">
+          <span class="updatelog-version">v1.4.0</span>
+          <span class="updatelog-date">May 2026</span>
+          <span class="updatelog-tag utag-major">Major</span>
+        </div>
+        <div class="updatelog-right">
+          <div class="updatelog-title">Admin Announcements and Status Panel</div>
+          <ul class="updatelog-changes">
+            <li>Added password-protected admin announcements panel with attachments</li>
+            <li>Added live status strip and roadmap with animated progress bars</li>
+          </ul>
+        </div>
+      </div>
+      <div class="updatelog-entry">
+        <div class="updatelog-left">
+          <span class="updatelog-version">v1.0.0</span>
+          <span class="updatelog-date">Mar 2026</span>
+          <span class="updatelog-tag utag-major">Major</span>
+        </div>
+        <div class="updatelog-right">
+          <div class="updatelog-title">Initial Website Launch</div>
+          <ul class="updatelog-changes">
+            <li>Website launched on GitHub Pages</li>
+            <li>Services, reviews, Discord banner, gold grid design system</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- ADMIN ANNOUNCEMENTS -->
+  <div id="announcements">
+    <div class="admin-lock">
+      <p class="section-label fade-in">Announcements</p>
+      <h2 class="section-title fade-in">Latest from Fennecs Dev.</h2>
+      <p class="section-desc fade-in">Official updates and news posted directly by the Fennecs Dev Group team.</p>
+      <div class="announce-list" id="announceList">
+        <div class="announce-empty" id="announceEmpty">No announcements yet. Check back soon.</div>
+      </div>
+      <div style="margin-top:38px;">
+        <div class="admin-gate" id="adminGate">
+          <h3>Admin Access</h3>
+          <p>Enter the admin password to post announcements.</p>
+          <input type="password" class="admin-input" id="adminPassInput" placeholder="Password"/>
+          <p class="admin-err" id="adminErr">Incorrect password. Try again.</p>
+          <button class="btn btn-primary" style="width:100%;" onclick="tryLogin()">Unlock</button>
+        </div>
+        <div class="admin-panel" id="adminPanel">
+          <div class="announce-form">
+            <h3>Post Announcement</h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+              <span style="font-family:'Space Mono',monospace;font-size:.63rem;color:#4ae87a;letter-spacing:.15em;">ADMIN LOGGED IN</span>
+              <button class="btn-logout" onclick="logout()">Log Out</button>
+            </div>
+            <div class="form-row">
+              <label>Type</label>
+              <select id="announceType"><option value="update">Update</option><option value="release">Release</option><option value="maintenance">Maintenance</option><option value="general">General</option></select>
+            </div>
+            <div class="form-row"><label>Title</label><input type="text" id="announceTitle" placeholder="Announcement title..."/></div>
+            <div class="form-row"><label>Message</label><textarea id="announceBody" rows="5" placeholder="Write your announcement here..."></textarea></div>
+            <div class="form-row">
+              <label>Attachments</label>
+              <label class="attach-label" for="attachInput">+ Add File or Image</label>
+              <input type="file" id="attachInput" multiple accept="image/*,.pdf,.txt,.zip" style="display:none;" onchange="handleAttach(this)"/>
+              <div class="attach-preview" id="attachPreview"></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-post" onclick="postAnnouncement()">Post</button>
+              <button class="btn-clear-all" onclick="clearAll()">Clear All</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close">CLOSE</span>
+    <img id="lightboxImg" src="" alt=""/>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- TEAM -->
+  <section id="team">
+    <p class="section-label fade-in">The Team</p>
+    <h2 class="section-title fade-in">Who builds at Fennecs.</h2>
+    <p class="section-desc fade-in">A dedicated group of Roblox developers working across animation, building, and scripting.</p>
+    <div class="team-grid">
+      <div class="team-card fade-in"><div class="team-avatar">FD</div><div class="team-name">FennecsDev</div><div class="team-role">Founder / Lead</div><div class="team-desc">Oversees all projects, handles commissions, and manages the group direction.</div></div>
+      <div class="team-card fade-in"><div class="team-avatar">AN</div><div class="team-name">AnimX</div><div class="team-role">Lead Animator</div><div class="team-desc">Specializes in Moon Animator rigs and full combat animation production.</div></div>
+      <div class="team-card fade-in"><div class="team-avatar">BL</div><div class="team-name">BuildLox</div><div class="team-role">Senior Builder</div><div class="team-desc">Creates detailed maps and environments inside Roblox Studio.</div></div>
+      <div class="team-card fade-in"><div class="team-avatar">SC</div><div class="team-name">ScriptCo</div><div class="team-role">Lua Developer</div><div class="team-desc">Writes clean game systems, UI scripts, and datastores for Roblox projects.</div></div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- PARTNERS -->
+  <section id="partners">
+    <p class="section-label fade-in">Partners</p>
+    <h2 class="section-title fade-in">Groups we work with.</h2>
+    <p class="section-desc fade-in">Trusted partnerships built inside the Roblox developer community.</p>
+    <div class="partners-row fade-in">
+      <div class="partner-card">
+        <p class="partner-badge">Official Partner</p>
+        <h3>RBLX Hub</h3>
+        <p>A trusted Roblox community hub. We collaborate on developer resources, group projects, and community outreach.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- REVIEWS -->
+  <section id="reviews">
+    <p class="section-label fade-in">Reviews</p>
+    <h2 class="section-title fade-in">What developers say.</h2>
+    <p class="section-desc fade-in">Feedback from clients and collaborators inside the Roblox development community.</p>
+    <div class="reviews-grid grid-1px">
+      <div class="review-card card-base fade-in"><p class="review-stars">* * * * *</p><p class="review-text">Fennecs built an entire animation set for our combat game. The Moon Animator work was clean and the rigs were exactly what we needed. Fast turnaround too.</p><p class="review-author">DevUser_Kira <span>/ Roblox Developer</span></p></div>
+      <div class="review-card card-base fade-in"><p class="review-stars">* * * * *</p><p class="review-text">The map build came out better than expected. They understood the brief and delivered something that runs smoothly with no lag issues.</p><p class="review-author">StudioBuilder_Zak <span>/ Game Dev</span></p></div>
+      <div class="review-card card-base fade-in"><p class="review-stars">* * * * *</p><p class="review-text">Needed a cutscene for an opening sequence. Fennecs handled the whole pipeline, camera work, animation timing, and even helped with scripting.</p><p class="review-author">MapleGames_Rex <span>/ Studio Owner</span></p></div>
+      <div class="review-card card-base fade-in"><p class="review-stars">* * * * *</p><p class="review-text">Solid group. Communication was clear throughout. The final Lua scripts were well commented and easy to work with going forward.</p><p class="review-author">CodeDev_Aly <span>/ Lead Scripter</span></p></div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <p class="section-label fade-in">FAQ</p>
+    <h2 class="section-title fade-in">Common questions.</h2>
+    <p class="section-desc fade-in">Everything you need to know before commissioning or collaborating with Fennecs Dev Group.</p>
+    <div class="faq-list fade-in">
+      <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)"><span>How do I commission Fennecs Dev Group?</span><span class="faq-arrow">&#9658;</span></button><div class="faq-answer"><p>Join our Discord server and open a commission ticket. We will discuss your project, timeline, and pricing there.</p></div></div>
+      <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)"><span>How do I apply for a collab?</span><span class="faq-arrow">&#9658;</span></button><div class="faq-answer"><p>Join our Discord and message us in the collabs channel. Tell us about your project and what kind of collaboration you are looking for.</p></div></div>
+      <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)"><span>Do you do Moon Animator work only or full development?</span><span class="faq-arrow">&#9658;</span></button><div class="faq-answer"><p>Both. We handle animation-only commissions and full development including Studio builds, scripting, and cinematic cutscenes.</p></div></div>
+      <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)"><span>How long does a commission take?</span><span class="faq-arrow">&#9658;</span></button><div class="faq-answer"><p>Timelines depend on scope. Simple animation packs can be a few days. Full builds or game systems can take one to two weeks. We keep you updated throughout.</p></div></div>
+      <div class="faq-item"><button class="faq-question" onclick="toggleFaq(this)"><span>Can I apply to join the team?</span><span class="faq-arrow">&#9658;</span></button><div class="faq-answer"><p>Yes. Use the Staff Application form on this page. We are currently accepting animators, builders, scripters, and community managers.</p></div></div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <div class="discord-banner" id="community">
+    <h2>Join the Community</h2>
+    <p>Connect with Fennecs Dev Group on Discord. Ask about commissions, collabs, or just hang out with the community.</p>
+    <a href="https://discord.gg/SPYcV66cp" target="_blank" class="btn btn-primary">Join the Server</a>
+  </div>
+
+  <footer>
+    <span class="footer-logo">FENNECS DEV GROUP</span>
+    <div class="footer-links">
+      <a href="#services">Services</a>
+      <a href="#showcase">Showcase</a>
+      <a href="#collabs">Collabs</a>
+      <a href="#apply">Join Us</a>
+      <a href="#updatelog">Updates</a>
+      <a href="#team">Team</a>
+      <a href="https://discord.gg/SPYcV66cp" target="_blank">Discord</a>
+    </div>
+    <span class="footer-note">v2.0.0 &mdash; Roblox Studio / Moon Animator Development</span>
+  </footer>
+
+  <script>
+    // CURSOR
+    const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+    document.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px';ring.style.left=e.clientX+'px';ring.style.top=e.clientY+'px'});
+    document.querySelectorAll('a,button,.service-card,.review-card,.commission-card,.team-card,.partner-card,.collab-card,.roadmap-card,.video-card').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{cursor.style.width='20px';cursor.style.height='20px';ring.style.width='52px';ring.style.height='52px'});
+      el.addEventListener('mouseleave',()=>{cursor.style.width='12px';cursor.style.height='12px';ring.style.width='36px';ring.style.height='36px'});
+    });
+
+    // PARTICLES
+    const canvas=document.getElementById('particles'),ctx=canvas.getContext('2d');
+    let W=canvas.width=window.innerWidth,H=canvas.height=window.innerHeight;
+    window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight});
+    const pts=Array.from({length:50},()=>({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:Math.random()*1.4+.4,a:Math.random()*.5+.1}));
+    function draw(){ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(232,200,74,${p.a*.3})`;ctx.fill()});pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{const dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);if(d<115){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(232,200,74,${(1-d/115)*.07})`;ctx.lineWidth=.5;ctx.stroke()}}));requestAnimationFrame(draw)}
+    draw();
+
+    // TYPEWRITER
+    const phrases=['Moon Animator specialists.','Roblox Studio builders.','Lua scripting experts.','Cutscene producers.','Open for collabs.','Now hiring staff.'];
+    let pi=0,ci=0,del=false;const twEl=document.getElementById('tw-text');
+    function type(){const phrase=phrases[pi];if(!del){twEl.textContent=phrase.slice(0,++ci);if(ci===phrase.length){del=true;setTimeout(type,1800);return}}else{twEl.textContent=phrase.slice(0,--ci);if(ci===0){del=false;pi=(pi+1)%phrases.length}}setTimeout(type,del?42:78)}
+    setTimeout(type,1300);
+
+    // THEME
+    function toggleTheme(){const b=document.body,btn=document.getElementById('themeBtn');b.classList.toggle('light');btn.textContent=b.classList.contains('light')?'Dark':'Light'}
+
+    // NAV + BACK TO TOP
+    const backTop=document.getElementById('backTop');
+    window.addEventListener('scroll',()=>{document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>55);backTop.classList.toggle('show',window.scrollY>300)});
+
+    // SCROLL REVEAL
+    const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:.1});
+    document.querySelectorAll('.fade-in,.slide-left,.slide-right').forEach(el=>obs.observe(el));
+
+    // STATS
+    const statsObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const el=e.target,target=+el.dataset.target;let n=0;const step=Math.max(1,Math.ceil(target/50));const t=setInterval(()=>{n+=step;if(n>=target){el.textContent=target+'+';clearInterval(t)}else el.textContent=n},28);statsObs.unobserve(el)}})},{threshold:.5});
+    document.querySelectorAll('.stat-num').forEach(el=>statsObs.observe(el));
+
+    // ROADMAP
+    const roadObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('.roadmap-fill').forEach(f=>{f.style.width=f.dataset.width+'%'});roadObs.unobserve(e.target)}})},{threshold:.2});
+    document.querySelectorAll('.roadmap-card').forEach(c=>roadObs.observe(c));
+
+    // FAQ
+    function toggleFaq(btn){const item=btn.closest('.faq-item'),open=item.classList.contains('open');document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));if(!open)item.classList.add('open')}
+
+    // CHAT
+    let chatOpen=false;
+    setTimeout(()=>{document.getElementById('chatUnread').classList.add('show')},3000);
+    function toggleChat(){chatOpen=!chatOpen;document.getElementById('chatWindow').classList.toggle('open',chatOpen);document.getElementById('chatUnread').classList.remove('show')}
+    function chatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}}
+    function sendMsg(){
+      const nameEl=document.getElementById('chatName'),msgEl=document.getElementById('chatInput');
+      const name=nameEl.value.trim()||'Visitor',text=msgEl.value.trim();
+      if(!text)return;
+      addMsg({name,text,time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),them:false});
+      msgEl.value='';
+      setTimeout(()=>{const replies=['Thanks for reaching out. Join our Discord for faster responses.','Feel free to ask about commissions or collabs on Discord.','We appreciate the message. Check the commissions section for what we currently offer.','Great to hear from you. For project discussions, Discord is the best place.'];addMsg({name:'FennecsDev',text:replies[Math.floor(Math.random()*replies.length)],time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),them:true});if(!chatOpen)document.getElementById('chatUnread').classList.add('show')},1200);
+    }
+    function addMsg(msg){const msgs=document.getElementById('chatMsgs');const div=document.createElement('div');div.className='chat-msg '+(msg.them?'them':'me');div.innerHTML=`<div class="chat-name-tag">${msg.name}</div><div class="chat-bubble-msg">${msg.text}</div><div class="chat-msg-time">${msg.time}</div>`;msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight}
+
+    // ADMIN
+    const ADMIN_PASS='fennecs2025';let attachments=[];
+    function tryLogin(){const val=document.getElementById('adminPassInput').value,err=document.getElementById('adminErr'),inp=document.getElementById('adminPassInput');if(val===ADMIN_PASS){document.getElementById('adminGate').style.display='none';document.getElementById('adminPanel').classList.add('visible');err.style.display='none';inp.classList.remove('error')}else{err.style.display='block';inp.classList.add('error')}}
+    document.getElementById('adminPassInput').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin()});
+    function logout(){document.getElementById('adminGate').style.display='';document.getElementById('adminPanel').classList.remove('visible');document.getElementById('adminPassInput').value=''}
+    function handleAttach(input){Array.from(input.files).forEach(file=>{const reader=new FileReader();reader.onload=e=>{attachments.push({name:file.name,type:file.type,dataUrl:e.target.result});renderAttachPreview()};reader.readAsDataURL(file)});input.value=''}
+    function renderAttachPreview(){const preview=document.getElementById('attachPreview');preview.innerHTML='';attachments.forEach((a,i)=>{if(a.type.startsWith('image/')){const wrap=document.createElement('div');wrap.className='attach-thumb';wrap.innerHTML=`<img src="${a.dataUrl}"/><span class="attach-remove" onclick="removeAttach(${i})">X</span>`;preview.appendChild(wrap)}else{const chip=document.createElement('div');chip.className='attach-file-chip';chip.innerHTML=`<span>${a.name}</span><span class="chip-remove" onclick="removeAttach(${i})">X</span>`;preview.appendChild(chip)}})}
+    function removeAttach(i){attachments.splice(i,1);renderAttachPreview()}
+    let announcements=[];try{announcements=JSON.parse(localStorage.getItem('fdg_announcements')||'[]')}catch(e){}
+    function saveAnn(){try{localStorage.setItem('fdg_announcements',JSON.stringify(announcements))}catch(e){}}
+    function renderAnnouncements(){const list=document.getElementById('announceList'),empty=document.getElementById('announceEmpty');list.innerHTML='';if(!announcements.length){list.appendChild(empty);return}const isAdmin=document.getElementById('adminPanel').classList.contains('visible');[...announcements].reverse().forEach((ann,ri)=>{const i=announcements.length-1-ri;const card=document.createElement('div');card.className='announce-card';const bc={update:'badge-update',release:'badge-release',maintenance:'badge-maintenance',general:'badge-general'}[ann.type]||'badge-general';let ah='';if(ann.attachments&&ann.attachments.length){ah='<div class="announce-attachments">';ann.attachments.forEach(a=>{if(a.type.startsWith('image/')){ah+=`<img class="ann-img" src="${a.dataUrl}" alt="${a.name}" onclick="openLightbox('${a.dataUrl}')"/>`}else{ah+=`<a class="ann-file-link" href="${a.dataUrl}" download="${a.name}">${a.name}</a>`}});ah+='</div>'}card.innerHTML=`<div class="announce-card-head"><span class="announce-type-badge ${bc}">${ann.type}</span><span class="announce-time">${ann.date}</span>${isAdmin?`<button class="announce-del" onclick="deleteAnnouncement(${i})">Delete</button>`:''}</div><div class="announce-title-text">${ann.title}</div><div class="announce-body">${ann.body}</div>${ah}`;list.appendChild(card)})}
+    function postAnnouncement(){const title=document.getElementById('announceTitle').value.trim(),body=document.getElementById('announceBody').value.trim(),type=document.getElementById('announceType').value;if(!title||!body){alert('Please fill in title and message.');return}const now=new Date(),date=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});announcements.push({title,body,type,date,attachments:[...attachments]});saveAnn();attachments=[];renderAttachPreview();document.getElementById('announceTitle').value='';document.getElementById('announceBody').value='';document.getElementById('announceType').value='update';renderAnnouncements()}
+    function deleteAnnouncement(i){if(!confirm('Delete this announcement?'))return;announcements.splice(i,1);saveAnn();renderAnnouncements()}
+    function clearAll(){if(!confirm('Delete ALL announcements?'))return;announcements=[];saveAnn();renderAnnouncements()}
+    function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open')}
+    function closeLightbox(){document.getElementById('lightbox').classList.remove('open')}
+    renderAnnouncements();
+
+    /* ============================================================
+       FEATURE 1: AMBIENT SOUND PLAYER
+    ============================================================ */
+    let audioCtx=null,gainNode=null,sourceNode=null,isPlaying=false;
+    function buildAmbientSound(){
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      gainNode=audioCtx.createGain();gainNode.gain.value=0.3;gainNode.connect(audioCtx.destination);
+    }
+    function playAmbient(){
+      if(!audioCtx)buildAmbientSound();
+      if(audioCtx.state==='suspended')audioCtx.resume();
+      // Low drone using oscillators
+      const osc1=audioCtx.createOscillator();
+      const osc2=audioCtx.createOscillator();
+      const osc3=audioCtx.createOscillator();
+      const g1=audioCtx.createGain();const g2=audioCtx.createGain();const g3=audioCtx.createGain();
+      osc1.type='sine';osc1.frequency.value=55;g1.gain.value=0.18;
+      osc2.type='sine';osc2.frequency.value=82.4;g2.gain.value=0.10;
+      osc3.type='triangle';osc3.frequency.value=110;g3.gain.value=0.06;
+      [osc1,osc2,osc3].forEach((o,i)=>{const g=[g1,g2,g3][i];o.connect(g);g.connect(gainNode)});
+      // Slow LFO on first osc
+      const lfo=audioCtx.createOscillator();const lfoGain=audioCtx.createGain();
+      lfo.frequency.value=0.08;lfoGain.gain.value=4;
+      lfo.connect(lfoGain);lfoGain.connect(osc1.frequency);lfo.start();
+      osc1.start();osc2.start();osc3.start();
+      sourceNode={osc1,osc2,osc3,lfo};
+    }
+    function stopAmbient(){if(sourceNode){try{sourceNode.osc1.stop();sourceNode.osc2.stop();sourceNode.osc3.stop();sourceNode.lfo.stop();}catch(e){}sourceNode=null}}
+    function toggleSound(){
+      if(!isPlaying){playAmbient();isPlaying=true;document.getElementById('soundBars').classList.add('playing');document.getElementById('soundIcon').innerHTML='<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+      }else{stopAmbient();isPlaying=false;document.getElementById('soundBars').classList.remove('playing');document.getElementById('soundIcon').innerHTML='<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>';}
+    }
+    function setVolume(v){if(gainNode)gainNode.gain.value=v/100*0.6}
+
+    /* ============================================================
+       FEATURE 2: STAFF APPLICATIONS
+    ============================================================ */
+    let applications=[];try{applications=JSON.parse(localStorage.getItem('fdg_applications')||'[]')}catch(e){}
+    function saveApps(){try{localStorage.setItem('fdg_applications',JSON.stringify(applications.slice(-20)))}catch(e){}}
+    function renderApps(){
+      const list=document.getElementById('aqList'),empty=document.getElementById('aqEmpty');
+      list.innerHTML='';
+      if(!applications.length){list.appendChild(empty);return}
+      [...applications].reverse().slice(0,6).forEach(a=>{
+        const d=document.createElement('div');d.className='aq-item';
+        d.innerHTML=`<div class="aq-name">${a.name}</div><div class="aq-role">${a.role}</div><div class="aq-msg">${a.msg.slice(0,100)}${a.msg.length>100?'...':''}</div><div class="aq-time">${a.time}</div>`;
+        list.appendChild(d);
+      });
+    }
+    function submitApplication(){
+      const name=document.getElementById('afName').value.trim();
+      const role=document.getElementById('afRole').value;
+      const exp=document.getElementById('afExp').value;
+      const msg=document.getElementById('afMsg').value.trim();
+      if(!name||!msg){alert('Please fill in your username and your message.');return}
+      const now=new Date();
+      const time=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' '+now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      applications.push({name,role,exp,msg,time});saveApps();renderApps();
+      document.getElementById('afName').value='';document.getElementById('afMsg').value='';
+      alert('Application submitted! We will review it and follow up on Discord.');
+    }
+    renderApps();
+
+    /* ============================================================
+       FEATURE 3: VISITOR HIT COUNTER
+    ============================================================ */
+    (function initVisitorCounter(){
+      let data={total:0,lastDate:'',todayCount:0};
+      try{data=JSON.parse(localStorage.getItem('fdg_visitors')||'{}');if(!data.total)data.total=0;if(!data.todayCount)data.todayCount=0;if(!data.lastDate)data.lastDate=''}catch(e){}
+      const today=new Date().toDateString();
+      if(data.lastDate!==today){data.lastDate=today;data.todayCount=0}
+      data.total++;data.todayCount++;
+      try{localStorage.setItem('fdg_visitors',JSON.stringify(data))}catch(e){}
+      // Animate counters
+      function animNum(el,target,suffix){
+        let n=0;const step=Math.max(1,Math.ceil(target/40));
+        const t=setInterval(()=>{n=Math.min(n+step,target);el.textContent=n+(suffix||'');if(n>=target)clearInterval(t)},30);
+      }
+      setTimeout(()=>{
+        animNum(document.getElementById('visitorTotal'),data.total,'');
+        animNum(document.getElementById('visitorToday'),data.todayCount,'');
+        // Simulated online count
+        const online=Math.floor(Math.random()*8)+3;
+        animNum(document.getElementById('visitorOnline'),online,'');
+        // Fluctuate online
+        setInterval(()=>{
+          const el=document.getElementById('visitorOnline');
+          const cur=parseInt(el.textContent)||online;
+          el.textContent=Math.max(1,cur+(Math.random()<.5?1:-1));
+        },9000);
+      },600);
+    })();
+
+    /* ============================================================
+       FEATURE 4: COOKIE CONSENT BANNER
+    ============================================================ */
+    (function initCookieBanner(){
+      try{if(localStorage.getItem('fdg_consent'))return}catch(e){return}
+      setTimeout(()=>{document.getElementById('cookieBanner').classList.add('show')},1800);
+    })();
+    function acceptCookies(){
+      try{localStorage.setItem('fdg_consent','accepted')}catch(e){}
+      document.getElementById('cookieBanner').classList.remove('show');
+    }
+    function declineCookies(){
+      document.getElementById('cookieBanner').classList.remove('show');
+    }
+
+    /* ============================================================
+       FEATURE 5: VIDEO SHOWCASE - CLICK TO PLAY
+    ============================================================ */
+    function loadVideo(placeholderId, videoId){
+      const placeholder=document.getElementById(placeholderId);
+      if(!placeholder)return;
+      const iframe=document.createElement('iframe');
+      iframe.src=`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+      iframe.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen=true;
+      placeholder.parentNode.replaceChild(iframe,placeholder);
+    }
+  </script>
+</body>
+</html>"""
+
+with open('/mnt/user-data/outputs/index.html', 'w') as f:
+    f.write(html)
+print("Written:", len(html), "bytes")
+PYEOF
+python3 /tmp/build_site.py
